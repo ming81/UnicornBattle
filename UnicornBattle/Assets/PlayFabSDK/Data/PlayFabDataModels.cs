@@ -12,6 +12,10 @@ namespace PlayFab.DataModels
     public class AbortFileUploadsRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The entity to perform this action on.
         /// </summary>
         public EntityKey Entity;
@@ -46,6 +50,10 @@ namespace PlayFab.DataModels
     public class DeleteFilesRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The entity to perform this action on.
         /// </summary>
         public EntityKey Entity;
@@ -77,14 +85,14 @@ namespace PlayFab.DataModels
     /// Combined entity type and ID structure which uniquely identifies a single entity.
     /// </summary>
     [Serializable]
-    public class EntityKey
+    public class EntityKey : PlayFabBaseModel
     {
         /// <summary>
         /// Unique ID of the entity.
         /// </summary>
         public string Id;
         /// <summary>
-        /// Entity type. See https://api.playfab.com/docs/tutorials/entities/entitytypes
+        /// Entity type. See https://docs.microsoft.com/gaming/playfab/features/data/entities/available-built-in-entity-types
         /// </summary>
         public string Type;
     }
@@ -97,6 +105,10 @@ namespace PlayFab.DataModels
     public class FinalizeFileUploadsRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The entity to perform this action on.
         /// </summary>
         public EntityKey Entity;
@@ -104,6 +116,10 @@ namespace PlayFab.DataModels
         /// Names of the files to be finalized. Restricted to a-Z, 0-9, '(', ')', '_', '-' and '.'
         /// </summary>
         public List<string> FileNames;
+        /// <summary>
+        /// The current version of the profile, can be used for concurrency control during updates.
+        /// </summary>
+        public int ProfileVersion;
     }
 
     [Serializable]
@@ -124,7 +140,7 @@ namespace PlayFab.DataModels
     }
 
     [Serializable]
-    public class GetFileMetadata
+    public class GetFileMetadata : PlayFabBaseModel
     {
         /// <summary>
         /// Checksum value for the file
@@ -157,6 +173,10 @@ namespace PlayFab.DataModels
     public class GetFilesRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The entity to perform this action on.
         /// </summary>
         public EntityKey Entity;
@@ -186,6 +206,10 @@ namespace PlayFab.DataModels
     public class GetObjectsRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The entity to perform this action on.
         /// </summary>
         public EntityKey Entity;
@@ -214,7 +238,7 @@ namespace PlayFab.DataModels
     }
 
     [Serializable]
-    public class InitiateFileUploadMetadata
+    public class InitiateFileUploadMetadata : PlayFabBaseModel
     {
         /// <summary>
         /// Name of the file.
@@ -233,6 +257,10 @@ namespace PlayFab.DataModels
     [Serializable]
     public class InitiateFileUploadsRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// The entity to perform this action on.
         /// </summary>
@@ -266,7 +294,7 @@ namespace PlayFab.DataModels
     }
 
     [Serializable]
-    public class ObjectResult : PlayFabResultCommon
+    public class ObjectResult : PlayFabBaseModel
     {
         /// <summary>
         /// Un-escaped JSON object, if EscapeObject false or default.
@@ -291,7 +319,7 @@ namespace PlayFab.DataModels
     }
 
     [Serializable]
-    public class SetObject
+    public class SetObject : PlayFabBaseModel
     {
         /// <summary>
         /// Body of the object to be saved. If empty and DeleteObject is true object will be deleted if it exists, or no operation
@@ -314,7 +342,7 @@ namespace PlayFab.DataModels
     }
 
     [Serializable]
-    public class SetObjectInfo
+    public class SetObjectInfo : PlayFabBaseModel
     {
         /// <summary>
         /// Name of the object
@@ -340,6 +368,10 @@ namespace PlayFab.DataModels
     [Serializable]
     public class SetObjectsRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// The entity to perform this action on.
         /// </summary>

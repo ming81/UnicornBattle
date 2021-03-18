@@ -1,5 +1,5 @@
 #if UNITY_2017_2_OR_NEWER
-using PlayFab.Json;
+
 using PlayFab.SharedModels;
 using System;
 using System.Collections;
@@ -9,13 +9,10 @@ using UnityEngine.Networking;
 
 namespace PlayFab.Internal
 {
-    public class PlayFabUnityHttp : IPlayFabTransportPlugin
+    public class PlayFabUnityHttp : ITransportPlugin
     {
         private bool _isInitialized = false;
         private readonly int _pendingWwwMessages = 0;
-
-        public string AuthKey { get; set; }
-        public string EntityToken { get; set; }
 
         public bool IsInitialized { get { return _isInitialized; } }
 
@@ -32,7 +29,7 @@ namespace PlayFab.Internal
 
         public void SimplePutCall(string fullUrl, byte[] payload, Action<byte[]> successCallback, Action<string> errorCallback)
         {
-            PlayFabHttp.instance.StartCoroutine(SimpleCallCoroutine("put",fullUrl, payload, successCallback, errorCallback));
+            PlayFabHttp.instance.StartCoroutine(SimpleCallCoroutine("put", fullUrl, payload, successCallback, errorCallback));
         }
 
         public void SimplePostCall(string fullUrl, byte[] payload, Action<byte[]> successCallback, Action<string> errorCallback)
@@ -76,7 +73,9 @@ namespace PlayFab.Internal
 
 
 #if UNITY_2017_2_OR_NEWER
+#if !UNITY_2019_1_OR_NEWER
                 request.chunkedTransfer = false; // can be removed after Unity's PUT will be more stable
+#endif
                 yield return request.SendWebRequest();
 #else
                 yield return request.Send();
@@ -102,7 +101,7 @@ namespace PlayFab.Internal
             if (PlayFabSettings.CompressApiData)
             {
                 reqContainer.RequestHeaders["Content-Encoding"] = "GZIP";
-                reqContainer.RequestHeaders["Accept-Encoding"] = "GZIP";
+                reqContainer.RequestHeaders["X-Accept-Encoding"] = "GZIP";
 
                 using (var stream = new MemoryStream())
                 {
@@ -230,14 +229,13 @@ namespace PlayFab.Internal
                     reqContainer.ApiResult.Request = reqContainer.ApiRequest;
                     reqContainer.ApiResult.CustomData = reqContainer.CustomData;
 
-                    PlayFabHttp.instance.OnPlayFabApiResult(reqContainer.ApiResult);
+                    PlayFabHttp.instance.OnPlayFabApiResult(reqContainer);
 #if !DISABLE_PLAYFABCLIENT_API
-                    PlayFabDeviceUtil.OnPlayFabLogin(reqContainer.ApiResult);
+                    PlayFabDeviceUtil.OnPlayFabLogin(reqContainer.ApiResult, reqContainer.settings, reqContainer.instanceApi);
 #endif
                     try
                     {
-                        PlayFabHttp.SendEvent(reqContainer.ApiEndpoint, reqContainer.ApiRequest, reqContainer.ApiResult,
-                            ApiProcessingEventType.Post);
+                        PlayFabHttp.SendEvent(reqContainer.ApiEndpoint, reqContainer.ApiRequest, reqContainer.ApiResult, ApiProcessingEventType.Post);
                     }
                     catch (Exception e)
                     {
@@ -281,4 +279,5 @@ namespace PlayFab.Internal
         }
     }
 }
+
 #endif

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using PlayFab.Internal;
-using PlayFab.Json;
 
 namespace PlayFab
 {
@@ -52,7 +51,7 @@ namespace PlayFab
                 switch (contract)
                 {
                     case PluginContract.PlayFab_Serializer:
-                        plugin = this.CreatePlugin<SimpleJsonInstance>();
+                        plugin = this.CreatePlugin<PlayFab.Json.SimpleJsonInstance>();
                         break;
                     case PluginContract.PlayFab_Transport:
                         plugin = this.CreatePlayFabTransportPlugin();
@@ -80,7 +79,7 @@ namespace PlayFab
 
         private IPlayFabPlugin CreatePlugin<T>() where T : IPlayFabPlugin, new()
         {
-            return (IPlayFabPlugin)Activator.CreateInstance(typeof(T));
+            return (IPlayFabPlugin)System.Activator.CreateInstance(typeof(T));
         }
 
         private ITransportPlugin CreatePlayFabTransportPlugin()
@@ -90,7 +89,11 @@ namespace PlayFab
             if (PlayFabSettings.RequestType == WebRequestType.HttpWebRequest)
                 transport = new PlayFabWebRequest();
 #endif
-#if UNITY_2017_2_OR_NEWER
+
+#if UNITY_2018_2_OR_NEWER // PlayFabWww will throw warnings as Unity has deprecated Www
+            if (transport == null)
+                transport = new PlayFabUnityHttp();
+#elif UNITY_2017_2_OR_NEWER
             if (PlayFabSettings.RequestType == WebRequestType.UnityWww)
                 transport = new PlayFabWww();
 

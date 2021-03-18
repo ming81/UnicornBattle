@@ -42,7 +42,7 @@ namespace PlayFab.PfEditor
 
             { DEBUG_REQUEST_TIMING, new PfDefineFlag { Flag = DEBUG_REQUEST_TIMING, Label = "ENABLE REQUEST TIMES", Category = PfDefineFlag.FlagCategory.Feature, isInverted = false, isSafe = true } },
             { ENABLE_BETA_FETURES, new PfDefineFlag { Flag = ENABLE_BETA_FETURES, Label = "ENABLE UNSTABLE FEATURES", Category = PfDefineFlag.FlagCategory.Feature, isInverted = false, isSafe = true } },
-            { ENABLE_PLAYFABPUBSUB_API, new PfDefineFlag { Flag = ENABLE_PLAYFABPUBSUB_API, Label = "ENABLE PubSub", Category = PfDefineFlag.FlagCategory.Feature, isInverted = false, isSafe = false } },
+            //{ ENABLE_PLAYFABPUBSUB_API, new PfDefineFlag { Flag = ENABLE_PLAYFABPUBSUB_API, Label = "ENABLE PubSub", Category = PfDefineFlag.FlagCategory.Feature, isInverted = false, isSafe = false } },
         };
 
         public static string DEFAULT_SDK_LOCATION = "Assets/PlayFabSdk";
@@ -113,11 +113,11 @@ namespace PlayFab.PfEditor
 
         private static GUISkin GetUiStyle()
         {
-            var searchRootAssetFolder = Application.dataPath;
-            var pfGuiPaths = Directory.GetFiles(searchRootAssetFolder, "PlayFabStyles.guiskin", SearchOption.AllDirectories);
+            var searchRoot = string.IsNullOrEmpty(EDEX_ROOT) ? Application.dataPath : EDEX_ROOT;
+            var pfGuiPaths = Directory.GetFiles(searchRoot, "PlayFabStyles.guiskin", SearchOption.AllDirectories);
             foreach (var eachPath in pfGuiPaths)
             {
-                var loadPath = eachPath.Substring(eachPath.LastIndexOf("Assets"));
+                var loadPath = eachPath.Substring(eachPath.LastIndexOf("Assets/"));
                 return (GUISkin)AssetDatabase.LoadAssetAtPath(loadPath, typeof(GUISkin));
             }
             return null;

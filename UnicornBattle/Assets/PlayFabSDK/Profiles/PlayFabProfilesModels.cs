@@ -15,7 +15,7 @@ namespace PlayFab.ProfilesModels
     /// An entity object and its associated meta data.
     /// </summary>
     [Serializable]
-    public class EntityDataObject
+    public class EntityDataObject : PlayFabBaseModel
     {
         /// <summary>
         /// Un-escaped JSON object, if DataAsObject is true.
@@ -35,20 +35,20 @@ namespace PlayFab.ProfilesModels
     /// Combined entity type and ID structure which uniquely identifies a single entity.
     /// </summary>
     [Serializable]
-    public class EntityKey
+    public class EntityKey : PlayFabBaseModel
     {
         /// <summary>
         /// Unique ID of the entity.
         /// </summary>
         public string Id;
         /// <summary>
-        /// Entity type. See https://api.playfab.com/docs/tutorials/entities/entitytypes
+        /// Entity type. See https://docs.microsoft.com/gaming/playfab/features/data/entities/available-built-in-entity-types
         /// </summary>
         public string Type;
     }
 
     [Serializable]
-    public class EntityLineage
+    public class EntityLineage : PlayFabBaseModel
     {
         /// <summary>
         /// The Character Id of the associated entity.
@@ -77,7 +77,7 @@ namespace PlayFab.ProfilesModels
     }
 
     [Serializable]
-    public class EntityPermissionStatement
+    public class EntityPermissionStatement : PlayFabBaseModel
     {
         /// <summary>
         /// The action this statement effects. May be 'Read', 'Write' or '*' for both read and write.
@@ -106,8 +106,12 @@ namespace PlayFab.ProfilesModels
     }
 
     [Serializable]
-    public class EntityProfileBody
+    public class EntityProfileBody : PlayFabBaseModel
     {
+        /// <summary>
+        /// Avatar URL for the entity.
+        /// </summary>
+        public string AvatarUrl;
         /// <summary>
         /// The creation time of this profile in UTC.
         /// </summary>
@@ -126,6 +130,10 @@ namespace PlayFab.ProfilesModels
         /// </summary>
         public string EntityChain;
         /// <summary>
+        /// The experiment variants of this profile.
+        /// </summary>
+        public List<string> ExperimentVariants;
+        /// <summary>
         /// The files on this profile.
         /// </summary>
         public Dictionary<string,EntityProfileFileMetadata> Files;
@@ -133,6 +141,10 @@ namespace PlayFab.ProfilesModels
         /// The language on this profile.
         /// </summary>
         public string Language;
+        /// <summary>
+        /// Leaderboard metadata for the entity.
+        /// </summary>
+        public string LeaderboardMetadata;
         /// <summary>
         /// The lineage of this profile.
         /// </summary>
@@ -147,6 +159,10 @@ namespace PlayFab.ProfilesModels
         /// </summary>
         public List<EntityPermissionStatement> Permissions;
         /// <summary>
+        /// The statistics on this profile.
+        /// </summary>
+        public Dictionary<string,EntityStatisticValue> Statistics;
+        /// <summary>
         /// The version number of the profile in persistent storage at the time of the read. Used for optional optimistic
         /// concurrency during update.
         /// </summary>
@@ -157,7 +173,7 @@ namespace PlayFab.ProfilesModels
     /// An entity file's meta data. To get a download URL call File/GetFiles API.
     /// </summary>
     [Serializable]
-    public class EntityProfileFileMetadata
+    public class EntityProfileFileMetadata : PlayFabBaseModel
     {
         /// <summary>
         /// Checksum value for the file
@@ -177,6 +193,48 @@ namespace PlayFab.ProfilesModels
         public int Size;
     }
 
+    [Serializable]
+    public class EntityStatisticChildValue : PlayFabBaseModel
+    {
+        /// <summary>
+        /// Child name value, if child statistic
+        /// </summary>
+        public string ChildName;
+        /// <summary>
+        /// Child statistic metadata
+        /// </summary>
+        public string Metadata;
+        /// <summary>
+        /// Child statistic value
+        /// </summary>
+        public int Value;
+    }
+
+    [Serializable]
+    public class EntityStatisticValue : PlayFabBaseModel
+    {
+        /// <summary>
+        /// Child statistic values
+        /// </summary>
+        public Dictionary<string,EntityStatisticChildValue> ChildStatistics;
+        /// <summary>
+        /// Statistic metadata
+        /// </summary>
+        public string Metadata;
+        /// <summary>
+        /// Statistic name
+        /// </summary>
+        public string Name;
+        /// <summary>
+        /// Statistic value
+        /// </summary>
+        public int? Value;
+        /// <summary>
+        /// Statistic version
+        /// </summary>
+        public int Version;
+    }
+
     /// <summary>
     /// Given an entity type and entity identifier will retrieve the profile from the entity store. If the profile being
     /// retrieved is the caller's, then the read operation is consistent, if not it is an inconsistent read. An inconsistent
@@ -187,6 +245,10 @@ namespace PlayFab.ProfilesModels
     [Serializable]
     public class GetEntityProfileRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// Determines whether the objects will be returned as an escaped JSON string or as a un-escaped JSON object. Default is
         /// JSON string.
@@ -215,6 +277,10 @@ namespace PlayFab.ProfilesModels
     public class GetEntityProfilesRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// Determines whether the objects will be returned as an escaped JSON string or as a un-escaped JSON object. Default is
         /// JSON string.
         /// </summary>
@@ -241,6 +307,10 @@ namespace PlayFab.ProfilesModels
     [Serializable]
     public class GetGlobalPolicyRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
     }
 
     [Serializable]
@@ -250,6 +320,39 @@ namespace PlayFab.ProfilesModels
         /// The permissions that govern access to all entities under this title or namespace.
         /// </summary>
         public List<EntityPermissionStatement> Permissions;
+    }
+
+    /// <summary>
+    /// Given a master player account id (PlayFab ID), returns all title player accounts associated with it.
+    /// </summary>
+    [Serializable]
+    public class GetTitlePlayersFromMasterPlayerAccountIdsRequest : PlayFabRequestCommon
+    {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
+        /// Master player account ids.
+        /// </summary>
+        public List<string> MasterPlayerAccountIds;
+        /// <summary>
+        /// Id of title to get players from.
+        /// </summary>
+        public string TitleId;
+    }
+
+    [Serializable]
+    public class GetTitlePlayersFromMasterPlayerAccountIdsResponse : PlayFabResultCommon
+    {
+        /// <summary>
+        /// Optional id of title to get players from, required if calling using a master_player_account.
+        /// </summary>
+        public string TitleId;
+        /// <summary>
+        /// Dictionary of master player ids mapped to title player entity keys and id pairs
+        /// </summary>
+        public Dictionary<string,EntityKey> TitlePlayerAccounts;
     }
 
     public enum OperationTypes
@@ -267,6 +370,10 @@ namespace PlayFab.ProfilesModels
     [Serializable]
     public class SetEntityProfilePolicyRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// The entity to perform this action on.
         /// </summary>
@@ -295,6 +402,10 @@ namespace PlayFab.ProfilesModels
     public class SetGlobalPolicyRequest : PlayFabRequestCommon
     {
         /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
         /// The permissions that govern access to all entities under this title or namespace.
         /// </summary>
         public List<EntityPermissionStatement> Permissions;
@@ -306,12 +417,16 @@ namespace PlayFab.ProfilesModels
     }
 
     /// <summary>
-    /// Given an entity profile, will update its language to the one passed in if the profile's version is at least the one
+    /// Given an entity profile, will update its language to the one passed in if the profile's version is equal to the one
     /// passed in.
     /// </summary>
     [Serializable]
     public class SetProfileLanguageRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// The entity to perform this action on.
         /// </summary>
@@ -319,7 +434,7 @@ namespace PlayFab.ProfilesModels
         /// <summary>
         /// The expected version of a profile to perform this update on
         /// </summary>
-        public int ExpectedVersion;
+        public int? ExpectedVersion;
         /// <summary>
         /// The language to set on the given entity. Deletes the profile's language if passed in a null string.
         /// </summary>

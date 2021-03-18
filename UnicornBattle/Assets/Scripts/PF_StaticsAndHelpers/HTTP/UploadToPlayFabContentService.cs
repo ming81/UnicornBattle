@@ -192,7 +192,10 @@ public class UploadToPlayFabContentService : MonoBehaviour
         }
 
         foreach (var asset in assets)
-            unpackedAssets.Add(asset.FileName, asset.Unpacked);
+        {
+            if(!unpackedAssets.ContainsKey(asset.FileName))
+                unpackedAssets.Add(asset.FileName, asset.Unpacked);
+        }            
 
         if (callback != null)
             callback(true);

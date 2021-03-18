@@ -9,16 +9,45 @@ namespace PlayFab.AuthenticationModels
     /// Combined entity type and ID structure which uniquely identifies a single entity.
     /// </summary>
     [Serializable]
-    public class EntityKey
+    public class EntityKey : PlayFabBaseModel
     {
         /// <summary>
         /// Unique ID of the entity.
         /// </summary>
         public string Id;
         /// <summary>
-        /// Entity type. See https://api.playfab.com/docs/tutorials/entities/entitytypes
+        /// Entity type. See https://docs.microsoft.com/gaming/playfab/features/data/entities/available-built-in-entity-types
         /// </summary>
         public string Type;
+    }
+
+    [Serializable]
+    public class EntityLineage : PlayFabBaseModel
+    {
+        /// <summary>
+        /// The Character Id of the associated entity.
+        /// </summary>
+        public string CharacterId;
+        /// <summary>
+        /// The Group Id of the associated entity.
+        /// </summary>
+        public string GroupId;
+        /// <summary>
+        /// The Master Player Account Id of the associated entity.
+        /// </summary>
+        public string MasterPlayerAccountId;
+        /// <summary>
+        /// The Namespace Id of the associated entity.
+        /// </summary>
+        public string NamespaceId;
+        /// <summary>
+        /// The Title Id of the associated entity.
+        /// </summary>
+        public string TitleId;
+        /// <summary>
+        /// The Title Player Account Id of the associated entity.
+        /// </summary>
+        public string TitlePlayerAccountId;
     }
 
     /// <summary>
@@ -31,6 +60,10 @@ namespace PlayFab.AuthenticationModels
     [Serializable]
     public class GetEntityTokenRequest : PlayFabRequestCommon
     {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
         /// <summary>
         /// The entity to perform this action on.
         /// </summary>
@@ -52,6 +85,75 @@ namespace PlayFab.AuthenticationModels
         /// The time the token will expire, if it is an expiring token, in UTC.
         /// </summary>
         public DateTime? TokenExpiration;
+    }
+
+    public enum IdentifiedDeviceType
+    {
+        Unknown,
+        XboxOne,
+        Scarlett
+    }
+
+    public enum LoginIdentityProvider
+    {
+        Unknown,
+        PlayFab,
+        Custom,
+        GameCenter,
+        GooglePlay,
+        Steam,
+        XBoxLive,
+        PSN,
+        Kongregate,
+        Facebook,
+        IOSDevice,
+        AndroidDevice,
+        Twitch,
+        WindowsHello,
+        GameServer,
+        CustomServer,
+        NintendoSwitch,
+        FacebookInstantGames,
+        OpenIdConnect,
+        Apple,
+        NintendoSwitchAccount
+    }
+
+    /// <summary>
+    /// Given an entity token, validates that it hasn't expired or been revoked and will return details of the owner.
+    /// </summary>
+    [Serializable]
+    public class ValidateEntityTokenRequest : PlayFabRequestCommon
+    {
+        /// <summary>
+        /// The optional custom tags associated with the request (e.g. build number, external trace identifiers, etc.).
+        /// </summary>
+        public Dictionary<string,string> CustomTags;
+        /// <summary>
+        /// Client EntityToken
+        /// </summary>
+        public string EntityToken;
+    }
+
+    [Serializable]
+    public class ValidateEntityTokenResponse : PlayFabResultCommon
+    {
+        /// <summary>
+        /// The entity id and type.
+        /// </summary>
+        public EntityKey Entity;
+        /// <summary>
+        /// The authenticated device for this entity, for the given login
+        /// </summary>
+        public IdentifiedDeviceType? IdentifiedDeviceType;
+        /// <summary>
+        /// The identity provider for this entity, for the given login
+        /// </summary>
+        public LoginIdentityProvider? IdentityProvider;
+        /// <summary>
+        /// The lineage of this profile.
+        /// </summary>
+        public EntityLineage Lineage;
     }
 }
 #endif

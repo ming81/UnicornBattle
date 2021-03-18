@@ -21,10 +21,9 @@ namespace PlayFab.PfEditor
             }
             else if (!IsPubSubPresent)
             {
-                DrawPubSubPrivatePreviewWarning();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(" PubSub: ");
-                if (GUILayout.Button("Install From GitHub", PlayFabEditorHelper.uiStyle.GetStyle("Button"), GUILayout.MaxWidth(buttonWidth), GUILayout.MinHeight(32)))
+                GUILayout.Label(" PersistentSockets: ");
+                if (GUILayout.Button("Install", PlayFabEditorHelper.uiStyle.GetStyle("Button"), GUILayout.MaxWidth(buttonWidth), GUILayout.MinHeight(32)))
                 {
                     string possibleNewtonsoftPath = "";
                     if (GetIsNewtonsoftInstalled(out possibleNewtonsoftPath))
@@ -47,23 +46,13 @@ namespace PlayFab.PfEditor
 #endif
         }
 
-        private static void DrawPubSubPrivatePreviewWarning()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" PUBSUB IS IN PRIVATE PREVIEW.");
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" If you are a Professional or Enterprise tier customer and wish to try this feature out, Please contact devrel@playfab.com for more information.");
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(" User MUST be currently signed into GitHub (with their default browser) to successfully install the unitypackage");
-            GUILayout.EndHorizontal();
-        }
-
         public static void ImportPubSubSDK()
         {
             var link = "https://api.playfab.com/downloads/unity-signalr";
-            System.Diagnostics.Process.Start(link);
+            PlayFabEditorHttp.MakeDownloadCall(link, (fileName) =>
+            {
+                AssetDatabase.ImportPackage(fileName, false);
+            });
         }
 
         public static bool GetIsNewtonsoftInstalled(out string path)

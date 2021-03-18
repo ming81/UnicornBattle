@@ -1,113 +1,51 @@
 using System;
 using System.Collections.Generic;
+using PlayFab;
+using PlayFab.ClientModels;
 using PlayFab.Internal;
 using PlayFab.SharedModels;
+using UnityEngine;
 
 public class PF_Advertising
 {
-
     public static void GetAdPlacements(GetAdPlacementsRequest request, Action<GetAdPlacementsResult> resultCallback, Action<PlayFab.PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
     {
-        // var context = (request == null ? null : request.AuthenticationContext) ?? PlayFab.PlayFabSettings.staticPlayer;
-        if (!PlayFab.PlayFabClientAPI.IsClientLoggedIn()) throw new PlayFab.PlayFabException(PlayFab.PlayFabExceptionCode.NotLoggedIn, "Must be logged in to call this method");
-
-        PlayFabHttp.MakeApiCall("/Client/GetAdPlacements", request, AuthType.LoginSession, resultCallback, errorCallback, customData, extraHeaders);
+        PlayFabClientAPI.GetAdPlacements(request, resultCallback, errorCallback, extraHeaders);
     }
 
-    public static void ReportAdActivity(ReportAdActivityRequest request, Action<ReportAdActivityResponse> resultCallback, Action<PlayFab.PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
+    public static void ReportAdActivity(string placementId, string rewardId, AdActivity activity)
     {
-        // var context = (request == null ? null : request.AuthenticationContext) ?? PlayFab.PlayFabSettings.staticPlayer;
-        if (!PlayFab.PlayFabClientAPI.IsClientLoggedIn()) throw new PlayFab.PlayFabException(PlayFab.PlayFabExceptionCode.NotLoggedIn, "Must be logged in to call this method");
-
-        PlayFabHttp.MakeApiCall("/Client/ReportAdActivity", request, AuthType.LoginSession, resultCallback, errorCallback, customData, extraHeaders);
+        PlayFabClientAPI.ReportAdActivity(new ReportAdActivityRequest()
+        {
+            PlacementId = placementId,
+            RewardId = rewardId,
+            Activity = AdActivity.End
+        },
+        (result) =>
+        {
+            if (activity == AdActivity.End)
+                RewardAdActivity(placementId, rewardId);
+        },
+        (error) =>
+        {
+            Debug.Log(error.GenerateErrorReport());
+        });
     }
 
-    public static void RewardAdActivity(RewardAdActivityRequest request, Action<RewardAdActivityResponse> resultCallback, Action<PlayFab.PlayFabError> errorCallback, object customData = null, Dictionary<string, string> extraHeaders = null)
+    public static void RewardAdActivity(string placementId, string rewardId)
     {
-        // var context = (request == null ? null : request.AuthenticationContext) ?? PlayFab.PlayFabSettings.staticPlayer;
-        if (!PlayFab.PlayFabClientAPI.IsClientLoggedIn()) throw new PlayFab.PlayFabException(PlayFab.PlayFabExceptionCode.NotLoggedIn, "Must be logged in to call this method");
-
-        PlayFabHttp.MakeApiCall("/Client/RewardAdActivity", request, AuthType.LoginSession, resultCallback, errorCallback, customData, extraHeaders);
+        PlayFabClientAPI.RewardAdActivity(new RewardAdActivityRequest()
+        {
+            PlacementId = placementId,
+            RewardId = rewardId,
+        },
+         (result) =>
+         {
+             Debug.Log("GrantedVirtualCurrencies:" + result.RewardResults.GrantedVirtualCurrencies["MS"]);             
+         },
+         (error) =>
+         {
+             Debug.Log(error.GenerateErrorReport());
+         });
     }
-}
-
-public class ReportAdActivityRequest : PlayFabRequestCommon
-{
-    public string PlacementId { get; set; }
-    public string RewardId { get; set; }
-    public AdActivity Activity { get; set; }
-}
-
-public enum AdActivity
-{
-    Opened,
-    Closed,
-    Start,
-    End
-}
-
-public class ReportAdActivityResponse : PlayFabResultCommon { }
-
-
-public class GetAdPlacementsRequest : PlayFabRequestCommon
-{
-    public NameIdentifier Identifier { get; set; }
-    public string AppId { get; set; }
-}
-
-
-public class NameIdentifier
-{
-    public string Name { get; set; }
-    public string Id { get; set; }
-}
-
-public class GetAdPlacementsResult : PlayFabResultCommon
-{
-    public AdPlacementDetails[] AdPlacements { get; set; }
-}
-
-public class AdPlacementDetails
-{
-    public string PlacementId { get; set; }
-    public string PlacementName { get; set; }
-    public string RewardId { get; set; }
-    public string RewardName { get; set; }
-    public string RewardDescription { get; set; }
-    public string RewardAssetUrl { get; set; }
-    public int? PlacementViewsRemaining { get; set; }
-    public int? PlacementViewsResetMinutes { get; set; }
-}
-
-public class RewardAdActivityRequest : PlayFabRequestCommon
-{
-    public string PlacementId { get; set; }
-    public string RewardId { get; set; }
-}
-
-public class RewardAdActivityResponse : PlayFabResultCommon
-{
-    public string AdActivityEventId { get; set; }
-    public List<string> DebugResults { get; set; }
-    public AdRewardResults RewardResults { get; set; }
-    public string RewardDescription { get; set; }
-    public string RewardAssetUrl { get; set; }
-    public int? PlacementViewsRemaining { get; set; }
-    public int? PlacementViewsResetMinutes { get; set; }
-    public string PlacementName { get; set; }
-    public string PlacementId { get; set; }
-}
-
-public class AdRewardResults
-{
-    public List<AdRewardItemGranted> GrantedItems { get; set; }
-    public Dictionary<string, int> GrantedVirtualCurrencies { get; set; }
-    public Dictionary<string, int> IncrementedStatistics { get; set; }
-}
-
-public class AdRewardItemGranted
-{
-    public string ItemId { get; set; }
-    public string CatalogId { get; set; }
-    public string DisplayName { get; set; }
 }

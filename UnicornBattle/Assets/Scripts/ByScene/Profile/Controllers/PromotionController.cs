@@ -1,11 +1,14 @@
 using PlayFab;
+using PlayFab.ClientModels;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Advertisements;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class PromotionController : MonoBehaviour
+public class PromotionController : MonoBehaviour, IUnityAdsListener
 {
     public Transform AdSlotCounterBar;
 
@@ -29,14 +32,30 @@ public class PromotionController : MonoBehaviour
 
     private LevelPicker _levelPicker;
 
+#if UNITY_IOS
+    private string _gameId = "4054592";
+#elif UNITY_ANDROID
+    private string _gameId = "4054593";
+#else
+    private string _gameId = "4054592";
+#endif
+    private UB_AdData _adData = null;
+
     // Use this for initialization
     void Start()
     {
+        if (!Advertisement.isInitialized)
+        {
+            Advertisement.AddListener(this);
+            Advertisement.Initialize(_gameId, true);
+        }
+
         // Set up the default display
         SetAdSlotCount(1);
         SelectBanner();
         _levelPicker = FindObjectOfType<LevelPicker>();
     }
+
 
     void OnEnable()
     {
@@ -95,7 +114,31 @@ public class PromotionController : MonoBehaviour
 
     public void OnCheckForPlayFabPlacementSuccess(GetAdPlacementsResult result)
     {
-        if ((result.AdPlacements != null && result.AdPlacements.Length > 0) && (result.AdPlacements[0].PlacementViewsRemaining == null || result.AdPlacements[0].PlacementViewsRemaining > 0))
+        for (int i = 0; i < result.AdPlacements.Count; i++)
+        {
+            var adPlacement = result.AdPlacements[i];
+            var adpromo = promos.Find((p) => { return p.linkedAd != null && p.assets.PromoId == adPlacement.PlacementId; });
+
+            if (adpromo == null)
+            {
+                AddAdPromo(adPlacement);
+                //SelectBanner(promos[0], 0);
+            }
+            else
+            {
+                adpromo.linkedAd.Details.PlacementViewsRemaining = adPlacement.PlacementViewsRemaining;
+            }
+
+            if (activePromo.assets.PromoId == adPlacement.PlacementId)
+            {
+                var qtyString = string.Format("{0}", adPlacement.PlacementViewsRemaining == null ? "UNLIMITED rewarded ads." : adPlacement.PlacementViewsRemaining + " more rewarded ads.");
+                selectedDesc.text = adPlacement.RewardDescription + " You may watch " + qtyString;
+            }            
+        }
+
+
+        /*
+        if ((result.AdPlacements != null && result.AdPlacements.Count > 0) && (result.AdPlacements[0].PlacementViewsRemaining == null || result.AdPlacements[0].PlacementViewsRemaining > 0))
         {
             var adpromo = promos.Find((p) => { return p.linkedAd != null && p.assets.PromoId == result.AdPlacements[0].PlacementId; });
 
@@ -126,10 +169,11 @@ public class PromotionController : MonoBehaviour
                 SelectBanner();
             }
         }
+        */
     }
     #endregion
 
-    void EvaluateAdState(RewardAdActivityResponse result = null)
+    void EvaluateAdState(RewardAdActivityResult result = null)
     {
         Debug.Log("EvaluateAdState Called.");
         CheckForPlayFabPlacement();
@@ -230,7 +274,8 @@ public class PromotionController : MonoBehaviour
     {
         var levelNames = PF_GameData.GetEventAssociatedLevels(activePromo.EventKey);
 
-        UnityAction<int> playEventIndex = index => {
+        UnityAction<int> playEventIndex = index =>
+        {
             _levelPicker.LevelItemClicked(levelNames[index]);
             _levelPicker.PlaySelectedLevel();
         };
@@ -246,8 +291,9 @@ public class PromotionController : MonoBehaviour
 
         //if (activePromo != null && activePromo.linkedAd != null && SupersonicEvents.rewardedVideoAvailability && Time.time > _watchLastClickedAt + _watchCD)
         if (activePromo != null && activePromo.linkedAd != null && false && Time.time > _watchLastClickedAt + _watchCD)
-            {
-                _watchLastClickedAt = Time.time;
+        {
+            _watchLastClickedAt = Time.time;
+            StartCoroutine(ShowRewardedVideo(activePromo.linkedAd));
             // SupersonicEvents.ShowRewardedVideo(activePromo.linkedAd.Details);
         }
         else
@@ -339,7 +385,51 @@ public class PromotionController : MonoBehaviour
         // We just changed the ad count, reset this list
         adSlots.Add(SlotEmpty); // Never remove this one as we're going to use it as a template
     }
+
+    public IEnumerator ShowRewardedVideo(UB_AdData adData)
+    {
+        _adData = adData;
+        Advertisement.Show(adData.Details.PlacementId);
+        yield return null;
+    }
+
+    public void OnUnityAdsReady(string placementId)
+    {
+    }
+
+    public void OnUnityAdsDidError(string message)
+    {
+    }
+
+    public void OnUnityAdsDidStart(string placementId)
+    {
+    }
+
+    public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
+    {
+        // Define conditional logic for each ad completion status:
+        if (showResult == ShowResult.Finished)
+        {
+            Debug.Log("Reward Finish!!");
+            if (_adData != null)
+            {
+                PF_Advertising.ReportAdActivity(_adData.Details.PlacementId, _adData.Details.RewardId, AdActivity.End);
+            }
+
+        }
+        else if (showResult == ShowResult.Skipped)
+        {
+            Debug.Log("Reward Skipped...");
+            // Do not reward the user for skipping the ad.
+        }
+        else if (showResult == ShowResult.Failed)
+        {
+            Debug.Log("Reward Failed...");
+        }
+        _adData = null;
+    }
 }
+
 
 public class UB_PromoDisplay
 {

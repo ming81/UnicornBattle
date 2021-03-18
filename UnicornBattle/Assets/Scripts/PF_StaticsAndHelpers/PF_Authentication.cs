@@ -351,13 +351,13 @@ public static class PF_Authentication
         }
 
         PF_Bridge.RaiseCallbackSuccess(string.Empty, PlayFabAPIMethods.GenericLogin, MessageDisplayStyle.none);
-        PF_PubSub.currentEntity = new PlayFab.Sockets.Models.EntityKey() {
-            Type = result.EntityToken.Entity.Type,
-            Id = result.EntityToken.Entity.Id
-        };
-        PF_PubSub.InitializePubSub();
-        if (OnLoginSuccess != null)
-            OnLoginSuccess(string.Format("SUCCESS: {0}", result.SessionTicket), MessageDisplayStyle.error);
+//         PF_PubSub.currentEntity = new PlayFab.Sockets.Models.EntityKey() {
+//             Type = result.EntityToken.Entity.Type,
+//             Id = result.EntityToken.Entity.Id
+//         };
+//         PF_PubSub.InitializePubSub();
+         if (OnLoginSuccess != null)
+             OnLoginSuccess(string.Format("SUCCESS: {0}", result.SessionTicket), MessageDisplayStyle.error);
     }
 
     /// <summary>

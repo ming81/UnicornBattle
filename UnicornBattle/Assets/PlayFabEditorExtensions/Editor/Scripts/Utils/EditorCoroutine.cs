@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace PlayFab.PfEditor
 {
@@ -31,16 +30,6 @@ namespace PlayFab.PfEditor
             return coroutine;
         }
 
-#if UNITY_2018_2_OR_NEWER
-        public static EditorCoroutine Start(IEnumerator _routine, UnityWebRequest www)
-        {
-            var coroutine = new EditorCoroutine(_routine);
-            coroutine.Id = Guid.NewGuid().ToString();
-            coroutine._www = www;
-            coroutine.Start();
-            return coroutine;
-        }
-#else
         public static EditorCoroutine Start(IEnumerator _routine, WWW www)
         {
             var coroutine = new EditorCoroutine(_routine);
@@ -49,18 +38,10 @@ namespace PlayFab.PfEditor
             coroutine.Start();
             return coroutine;
         }
-#endif
 
 
         readonly IEnumerator routine;
-
-
-#if UNITY_2018_2_OR_NEWER
-        private UnityWebRequest _www;
-        private bool _sent = false;
-#else
         private WWW _www;
-#endif
 
         EditorCoroutine(IEnumerator _routine)
         {
@@ -86,20 +67,6 @@ namespace PlayFab.PfEditor
             {
                 if (_www != null)
                 {
-#if UNITY_2018_2_OR_NEWER
-                    if (!_sent)
-                    {
-                        try
-                        {
-                            routine.MoveNext();
-                            _sent = true;
-                        }
-                        catch (ArgumentNullException)
-                        {
-                        }
-                    }
-#endif
-
                     if (_www.isDone && !routine.MoveNext())
                     {
                         Stop();

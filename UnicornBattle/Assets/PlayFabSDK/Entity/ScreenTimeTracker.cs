@@ -37,8 +37,15 @@ namespace PlayFab.Public
         private Queue<EventsModels.EventContents> eventsRequests = new Queue<EventsModels.EventContents>();
 
         private EventsModels.EntityKey entityKey = new EventsModels.EntityKey();
-        private const String eventNamespace = "com.playfab.events.sessions";
+        private const string eventNamespace = "com.playfab.events.sessions";
         private const int maxBatchSizeInEvents = 10;
+
+        private PlayFabEventsInstanceAPI eventApi;
+
+        public ScreenTimeTracker()
+        {
+            eventApi = new PlayFabEventsInstanceAPI(PlayFabSettings.staticPlayer);
+        }
 
         /// <summary>
         /// Start session, the function responsible for creating SessionID and gathering information about user and device
@@ -118,7 +125,7 @@ namespace PlayFab.Public
             {
                 focusStateDuration = (currentUtcDateTime - focusOnDateTime).TotalSeconds;
 
-                // this check safeguards from manual time changes while app is running                
+                // this check safeguards from manual time changes while app is running
                 if (focusStateDuration < 0)
                 {
                     focusStateDuration = 0;
@@ -142,7 +149,7 @@ namespace PlayFab.Public
 
             initialFocus = false;
 
-            if(!isFocused)
+            if (!isFocused)
             {
                 // Force the eventsRequests queue to empty.
                 // If we are losing focus we should make an attempt to push out a focus lost event ASAP
@@ -156,7 +163,7 @@ namespace PlayFab.Public
         /// </summary>
         public void Send()
         {
-            if ((PlayFabClientAPI.IsClientLoggedIn()) && (isSending == false))
+            if (PlayFabSettings.staticPlayer.IsClientLoggedIn() && (isSending == false))
             {
                 isSending = true;
 
@@ -171,7 +178,7 @@ namespace PlayFab.Public
 
                 if (request.Events.Count > 0)
                 {
-                    PlayFabEventsAPI.WriteEvents(request, EventSentSuccessfulCallback, EventSentErrorCallback);
+                    eventApi.WriteEvents(request, EventSentSuccessfulCallback, EventSentErrorCallback);
                 }
 
                 isSending = false;
@@ -196,7 +203,7 @@ namespace PlayFab.Public
             Debug.LogWarning("Failed to send session data. Error: " + response.GenerateErrorReport());
         }
 
-#region Unused MonoBehaviour compatibility  methods
+        #region Unused MonoBehaviour compatibility  methods
         /// <summary>
         /// Unused
         /// Name mimics MonoBehaviour method, for ease of integration.
@@ -223,7 +230,7 @@ namespace PlayFab.Public
         {
             // add code sending events on destroy
         }
-#endregion
+        #endregion
 
         /// <summary>
         /// Trying to send event during game exit. Note: works only on certain platforms.
